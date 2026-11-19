@@ -1,0 +1,35 @@
+{
+  "name": "hamburgueria",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:regras": "firebase emulators:exec --config firebase/firebase.json --only firestore --project demo-brasa \"node --test tests/regras/regras.test.mjs\"",
+    "test:tela": "playwright test"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0",
+    "lucide-react": "^1.76.0",
+    "next": "15.5.29",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@playwright/test": "^1.65.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.29",
+    "firebase-tools": "^14.27.0",
+    "serve": "^14.2.8",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

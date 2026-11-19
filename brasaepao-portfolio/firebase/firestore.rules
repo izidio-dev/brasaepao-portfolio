@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// Regras de segurança do cardápio.
+// - Qualquer visitante pode LER o cardápio e os dados da loja.
+// - Só o gerente (UID listado em donos()) pode ALTERAR.
+// - Tudo fora de /lojas fica fechado.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // UID da conta do gerente (Firebase Console → Authentication → Usuários).
+    function donos() {
+      return ['L20y3b6TQXOwBmOjvUE6DdPQn122'];
+    }
+
+    function ehDono() {
+      return request.auth != null && request.auth.uid in donos();
+    }
+
+    function textoOk(campo, max) {
+      return campo is string && campo.size() > 0 && campo.size() <= max;
+    }
+
+    function precoOk(valor) {
+      return valor is int && valor >= 0 && valor <= 1000000;
+    }
+
+    function lojaValida(d) {
+      return textoOk(d.nome, 80)
+        && d.whatsapp is string && d.whatsapp.matches('^[0-9]{12,13}$')
+        && precoOk(d.taxaEntrega)
+        && textoOk(d.tempoEntrega, 40);
+    }
+
+    function produtoValido(d) {
+      return textoOk(d.nome, 80)
+        && d.descricao is string && d.descricao.size() <= 300
+        && precoOk(d.preco)
+        && d.categoria in ['burgers', 'combos', 'acompanhamentos', 'bebidas']
+        && d.foto is string && d.foto.size() <= 250000
+        && d.disponivel is bool
+        && d.ordem is number;
+    }
+
+    function adicionalValido(d) {
+      return textoOk(d.nome, 60) && precoOk(d.preco) && d.ordem is number;
+    }
+
+    match /lojas/{loja} {
+      allow read: if true;
+      allow write: if ehDono() && lojaValida(request.resource.data);
+
+      match /produtos/{id} {
+        allow read: if true;
+        allow create, update: if ehDono() && produtoValido(request.resource.data);
+        allow delete: if ehDono();
+      }
+
+      match /adicionais/{id} {
+        allow read: if true;
+        allow create, update: if ehDono() && adicionalValido(request.resource.data);
+        allow delete: if ehDono();
+      }
+    }
+  }
+}
