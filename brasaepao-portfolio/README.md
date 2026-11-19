@@ -2,11 +2,14 @@
 
 Projeto de demonstração (empresa fictícia) para portfólio.
 
+**Ver ao vivo:** https://brasaepao-portfolio.pages.dev
+
+**Painel do gerente:** https://brasaepao-portfolio.pages.dev/admin/ (use "Entrar no modo demonstração")
+
 - **Site público:** cardápio com fotos, adicionais, ponto da carne, carrinho e pedido
   enviado formatado pelo WhatsApp. Funciona mesmo se o banco cair (usa a cópia embutida).
 - **Painel do gerente (`/admin`):** login, criar/editar/excluir produtos, marcar como
   esgotado, adicionais e dados da loja. Tem um **modo demonstração** que não grava nada.
-
 ## Tecnologias
 
 Next.js (exportação estática) · React · TypeScript · Tailwind CSS · Firebase
