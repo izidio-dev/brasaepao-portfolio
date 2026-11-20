@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { categorias, type Produto } from "@/data/cardapio";
 import { formatarPreco } from "@/lib/pedido";
+import { hojeSP, promocaoVigente, rotuloAte } from "@/lib/promocao";
 import type { Executar } from "./Painel";
 import { FormProduto } from "./FormProduto";
 
@@ -41,7 +42,14 @@ export function AbaProdutos({ produtos, executar }: { produtos: Produto[]; execu
                         {p.nome}
                         {esgotado && <span className="ml-2 rounded-full bg-carvao px-2 py-0.5 text-[11px] font-bold text-creme uppercase">Esgotado</span>}
                       </p>
-                      <p className="text-sm font-semibold text-brasa tabular-nums">{formatarPreco(p.preco)}</p>
+                      <p className="text-sm font-semibold text-brasa tabular-nums">
+                        {formatarPreco(p.preco)}
+                        {p.promocao && (
+                          <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${promocaoVigente(p, hojeSP()) ? "bg-mostarda text-carvao" : "bg-carvao/10 text-cinza"}`}>
+                            {promocaoVigente(p, hojeSP()) ? `Promoção ${formatarPreco(p.promocao.preco)} ${rotuloAte(p.promocao.ate)}` : "Promoção encerrada"}
+                          </span>
+                        )}
+                      </p>
                     </div>
                     {confirmando ? (
                       <div className="flex items-center gap-2 text-sm">

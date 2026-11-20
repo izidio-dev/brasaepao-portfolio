@@ -6,9 +6,10 @@ import { cardapioReserva, repositorioFirestore, repositorioMemoria, type Cardapi
 import { AbaAdicionais } from "./AbaAdicionais";
 import { AbaLoja } from "./AbaLoja";
 import { AbaProdutos } from "./AbaProdutos";
+import { AbaPromocoes } from "./AbaPromocoes";
 
 type Modo = { tipo: "demo" } | { tipo: "real"; email: string };
-type Aba = "produtos" | "adicionais" | "loja";
+type Aba = "produtos" | "promocoes" | "adicionais" | "loja";
 
 /** Traduz erros do Firebase para mensagens que o gerente entende. */
 export function mensagemErro(e: unknown): string {
@@ -120,6 +121,7 @@ export function Painel() {
 
   const abas: { id: Aba; nome: string }[] = [
     { id: "produtos", nome: "Produtos" },
+    { id: "promocoes", nome: "Promoções" },
     { id: "adicionais", nome: "Adicionais" },
     { id: "loja", nome: "Loja" },
   ];
@@ -152,7 +154,7 @@ export function Painel() {
       )}
 
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <div role="tablist" aria-label="Seções do painel" className="flex gap-2">
+        <div role="tablist" aria-label="Seções do painel" className="flex gap-2 overflow-x-auto">
           {abas.map((a) => (
             <button
               key={a.id}
@@ -186,6 +188,8 @@ export function Painel() {
             <p className="text-cinza">Carregando cardápio…</p>
           ) : aba === "produtos" ? (
             <AbaProdutos produtos={cardapio.produtos} executar={executar} />
+          ) : aba === "promocoes" ? (
+            <AbaPromocoes kits={cardapio.kits} produtos={cardapio.produtos} executar={executar} />
           ) : aba === "adicionais" ? (
             <AbaAdicionais adicionais={cardapio.adicionais} executar={executar} />
           ) : (

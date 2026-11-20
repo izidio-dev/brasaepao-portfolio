@@ -22,6 +22,10 @@ export type Produto = {
   disponivel?: boolean;
   /** Posição na lista (menor aparece primeiro). */
   ordem?: number;
+  /** Promoção com data de fim: preço promocional vale até o fim do dia "ate" (AAAA-MM-DD). */
+  promocao?: { preco: number; ate: string };
+  /** Calculado no site: preço normal, mostrado riscado enquanto a promoção vale. Não vai para o banco. */
+  precoDe?: number;
 };
 
 /** Burgers e combos sempre permitem ponto da carne e adicionais. */

@@ -2,18 +2,18 @@
 
 Projeto de demonstração (empresa fictícia) para portfólio.
 
-**Ver ao vivo:** https://brasaepao-portfolio.pages.dev
-
-**Painel do gerente:** https://brasaepao-portfolio.pages.dev/admin/ (use "Entrar no modo demonstração")
-
 - **Site público:** cardápio com fotos, adicionais, ponto da carne, carrinho e pedido
   enviado formatado pelo WhatsApp. Funciona mesmo se o banco cair (usa a cópia embutida).
+- **Promoções com data de fim:** preço promocional de um produto (o antigo aparece riscado)
+  e kits com vários itens por um preço só ("Promo fim de semana: 1 Clássico + 1 Salada"),
+  numa faixa no topo do cardápio. Passou a data, tudo volta ao normal sozinho.
 - **Painel do gerente (`/admin`):** login, criar/editar/excluir produtos, marcar como
-  esgotado, adicionais e dados da loja. Tem um **modo demonstração** que não grava nada.
+  esgotado, promoções, adicionais e dados da loja. Tem um **modo demonstração** que não grava nada.
+
 ## Tecnologias
 
 Next.js (exportação estática) · React · TypeScript · Tailwind CSS · Firebase
-(Authentication + Firestore) · Playwright · Cloudflare Pages.
+(Authentication + Firestore) · Playwright · Cloudflare Workers.
 
 ## Como rodar
 
@@ -25,6 +25,7 @@ npm run dev        # http://localhost:3000
 ## Testes
 
 ```bash
+npm run test:unidade                 # regras das promoções (validade, preço do kit)
 npm run build && npm run test:tela   # testes de tela e das regras de preço/pedido
 npm run test:regras                  # regras de segurança do Firestore (emulador; precisa de Java)
 ```
@@ -35,6 +36,7 @@ npm run test:regras                  # regras de segurança do Firestore (emulad
 |---|---|
 | `src/data/cardapio.ts` | Cardápio embutido (reserva se o banco não responder) |
 | `src/lib/pedido.ts` | Contas do pedido em centavos e a mensagem do WhatsApp |
+| `src/lib/promocao.ts` | Promoção vigente, preço do kit e "de" riscado (fuso de São Paulo) |
 | `src/lib/repositorio.ts` | Leitura e gravação no Firestore (e versão em memória para o modo demonstração) |
 | `src/lib/useCardapio.ts` | Cardápio do site: reserva → cache do navegador → banco (até 4 s) |
 | `src/lib/imagem.ts` | Reduz a foto no navegador e salva no banco (sem Cloud Storage) |

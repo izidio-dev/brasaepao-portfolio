@@ -16,7 +16,7 @@ function lerCache(): Cardapio | null {
   try {
     const bruto = localStorage.getItem(CHAVE_CACHE);
     const dados = bruto ? JSON.parse(bruto) : null;
-    return dados && Array.isArray(dados.produtos) && dados.loja ? dados : null;
+    return dados && Array.isArray(dados.produtos) && dados.loja ? { ...dados, kits: Array.isArray(dados.kits) ? dados.kits : [] } : null;
   } catch {
     return null;
   }

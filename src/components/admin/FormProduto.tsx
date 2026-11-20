@@ -6,6 +6,7 @@ import { useState } from "react";
 import { categorias, type Categoria, type Produto } from "@/data/cardapio";
 import { reduzirImagem } from "@/lib/imagem";
 import { centavosParaTexto, paraCentavos } from "@/lib/preco";
+import { hojeSP } from "@/lib/promocao";
 import { Janela } from "../Janela";
 
 /** Cria um id legível a partir do nome: "X-Tudo Duplo" → "x-tudo-duplo-k3f9". */
@@ -33,6 +34,9 @@ export function FormProduto({
   const [destaque, setDestaque] = useState(produto?.destaque ?? "");
   const [foto, setFoto] = useState(produto?.foto ?? "");
   const [disponivel, setDisponivel] = useState(produto?.disponivel !== false);
+  const [emPromocao, setEmPromocao] = useState(!!produto?.promocao);
+  const [precoPromo, setPrecoPromo] = useState(produto?.promocao ? centavosParaTexto(produto.promocao.preco) : "");
+  const [ate, setAte] = useState(produto?.promocao?.ate ?? "");
   const [erros, setErros] = useState<string[]>([]);
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -57,6 +61,13 @@ export function FormProduto({
     if (!nome.trim()) lista.push("Informe o nome do produto.");
     if (centavos === null) lista.push("Informe um preço válido, por exemplo 28,90.");
     if (!categoria) lista.push("Escolha a categoria.");
+    const promo = emPromocao ? paraCentavos(precoPromo) : null;
+    if (emPromocao) {
+      if (promo === null) lista.push("Informe o preço promocional, por exemplo 24,90.");
+      else if (centavos !== null && promo >= centavos) lista.push("O preço promocional precisa ser menor que o preço normal.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(ate)) lista.push("Escolha até quando a promoção vale.");
+      else if (ate < hojeSP()) lista.push("A data da promoção precisa ser hoje ou depois.");
+    }
     setErros(lista);
     if (lista.length || centavos === null || !categoria) return;
 
@@ -71,6 +82,7 @@ export function FormProduto({
       foto: foto || "/fotos/classico.webp",
       disponivel,
       ordem: produto?.ordem ?? proximaOrdem,
+      promocao: emPromocao && promo !== null ? { preco: promo, ate } : undefined,
     });
     setSalvando(false);
   }
@@ -131,6 +143,27 @@ export function FormProduto({
             <input id="disponivel-produto" type="checkbox" checked={disponivel} onChange={(e) => setDisponivel(e.target.checked)} className="size-5 accent-brasa" />
             Disponível no cardápio
           </label>
+
+          <fieldset className="rounded-2xl border-2 border-dashed border-brasa/30 p-4">
+            <legend className="px-1 font-semibold">Promoção</legend>
+            <label className="flex items-center gap-3 font-semibold">
+              <input id="promocao-produto" type="checkbox" checked={emPromocao} onChange={(e) => setEmPromocao(e.target.checked)} className="size-5 accent-brasa" />
+              Em promoção
+            </label>
+            {emPromocao && (
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                <label className="block font-semibold">
+                  Preço promocional
+                  <input id="preco-promocional" inputMode="decimal" value={precoPromo} onChange={(e) => setPrecoPromo(e.target.value)} placeholder="24,90" className={campo} />
+                </label>
+                <label className="block font-semibold">
+                  Válida até
+                  <input id="promocao-ate" type="date" value={ate} min={hojeSP()} onChange={(e) => setAte(e.target.value)} className={campo} />
+                </label>
+                <p className="text-sm text-cinza sm:col-span-2">No último dia, a promoção vale até meia-noite. Depois, o preço volta ao normal sozinho.</p>
+              </div>
+            )}
+          </fieldset>
 
           {erros.length > 0 && (
             <div role="alert" className="rounded-xl border-2 border-brasa/40 bg-brasa/10 p-3 text-sm">

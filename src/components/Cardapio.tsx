@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import { Bike, Clock, ShoppingBag, Store } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { categorias, type Produto } from "@/data/cardapio";
 import { useCardapio, produtosVisiveis } from "@/lib/useCardapio";
 import { loja as dadosFixos } from "@/data/loja";
 
 const enderecoLoja = dadosFixos.endereco;
 import { formatarPreco, totais, type ItemCarrinho } from "@/lib/pedido";
+import { comPromocao, hojeSP, itemDoKit, kitsVigentes } from "@/lib/promocao";
+import { CartaoKit } from "./CartaoKit";
 import { CartaoProduto } from "./CartaoProduto";
 import { Carrinho } from "./Carrinho";
 import { ModalProduto } from "./ModalProduto";
@@ -28,9 +30,13 @@ function carregarCarrinho(): ItemCarrinho[] {
 }
 
 export function Cardapio() {
-  const { cardapio } = useCardapio();
+  const { cardapio, origem } = useCardapio();
   const { loja } = cardapio;
-  const produtos = produtosVisiveis(cardapio.produtos);
+  // A data só é lida no navegador (o site é gerado antes, sem saber o dia de hoje).
+  const [hoje, setHoje] = useState<string | null>(null);
+  useEffect(() => setHoje(hojeSP()), []);
+  const produtos = useMemo(() => produtosVisiveis(cardapio.produtos).map((p) => (hoje ? comPromocao(p, hoje) : p)), [cardapio.produtos, hoje]);
+  const kits = useMemo(() => (hoje ? kitsVigentes(cardapio.kits ?? [], produtos, hoje) : []), [cardapio.kits, produtos, hoje]);
   const [itens, setItens] = useState<ItemCarrinho[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [produtoAberto, setProdutoAberto] = useState<Produto | null>(null);
@@ -50,6 +56,22 @@ export function Cardapio() {
       /* navegador sem armazenamento: o carrinho só vale nesta visita */
     }
   }, [itens, carregado]);
+
+  // Carrinho salvo de outra visita: tira kits que acabaram e atualiza preços que mudaram
+  // (ex.: promoção que venceu). Só depois de ter o cardápio real (do navegador ou do banco).
+  useEffect(() => {
+    if (!carregado || !hoje || origem === "reserva") return;
+    setItens((atual) => {
+      const novos = atual
+        .filter((i) => !i.produtoId.startsWith("kit:") || kits.some((k) => `kit:${k.id}` === i.produtoId))
+        .map((i) => {
+          if (i.produtoId.startsWith("kit:")) return { ...i, precoBase: kits.find((k) => `kit:${k.id}` === i.produtoId)!.preco };
+          const p = produtos.find((x) => x.id === i.produtoId);
+          return p ? { ...i, precoBase: p.preco } : i;
+        });
+      return JSON.stringify(novos) === JSON.stringify(atual) ? atual : novos;
+    });
+  }, [carregado, hoje, origem, kits, produtos]);
 
   const quantidadeTotal = itens.reduce((s, i) => s + i.quantidade, 0);
   const { subtotal } = totais(itens, "retirada", 0);
@@ -102,6 +124,13 @@ export function Cardapio() {
         </div>
         <nav aria-label="Categorias" className="mx-auto max-w-6xl overflow-x-auto px-4 pb-3">
           <ul className="flex gap-2">
+            {kits.length > 0 && (
+              <li>
+                <a href="#promocoes" className="block rounded-full border-2 border-brasa bg-brasa px-4 py-1.5 text-sm font-bold whitespace-nowrap text-white">
+                  Promoções
+                </a>
+              </li>
+            )}
             {categorias.map((c) => (
               <li key={c.id}>
                 <a href={`#${c.id}`} className="block rounded-full border-2 border-carvao/15 px-4 py-1.5 text-sm font-bold whitespace-nowrap hover:border-carvao">
@@ -150,6 +179,21 @@ export function Cardapio() {
             </button>
           </div>}
         </section>
+
+        {/* Promoções (kits) */}
+        {kits.length > 0 && (
+          <section id="promocoes" aria-labelledby="t-promocoes" className="mx-auto max-w-6xl px-4 py-10">
+            <div className="mb-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b-2 border-dashed border-brasa/30 pb-3">
+              <h2 id="t-promocoes" className="titulo text-4xl text-brasa sm:text-5xl">Promoções</h2>
+              <span className="text-sm font-semibold text-cinza">por tempo limitado</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {kits.map((k) => (
+                <CartaoKit key={k.id} kit={k} aoAdicionar={() => adicionar(itemDoKit(k, 1))} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Categorias */}
         {categorias.map((c) => {

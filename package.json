@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:regras": "firebase emulators:exec --config firebase/firebase.json --only firestore --project demo-brasa \"node --test tests/regras/regras.test.mjs\"",
-    "test:tela": "playwright test"
+    "test:tela": "playwright test",
+    "test:unidade": "node --test tests/unidade/*.test.ts"
   },
   "dependencies": {
     "firebase": "^12.19.0",
